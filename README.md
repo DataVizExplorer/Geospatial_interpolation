@@ -1,3 +1,3 @@
-# Geospatial_interpolation
-Geospatial Interpolation of yield rate (Sunflower)
-## tyty
+#Geospatial interpolation of yield maps Jolanda Di Savoia plains
+
+
