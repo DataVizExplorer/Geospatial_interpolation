@@ -90,6 +90,70 @@ o	Defining a nodata value (np.nan) to represent missing data pixels.
 
 •	Reads the specified GeoTIFF raster file (interpolated_yield_map.tif), loads its data while handling NoData values, and then visualizes this data as a properly georeferenced map using Matplotlib.
 
+## Average Vegetation Index Map 
+•	Importing a wide range of libraries essential for geospatial data handling (geopandas, xarray, rioxarray, rasterio), cloud data access (pystac_client, planetary_computer), data stacking (stackstac), parallel processing (dask), and general data manipulation (numpy, pandas, matplotlib). 
+
+•	Defining core parameters for the analysis: The Area of Interest (AOI) using bounding box coordinates in a projected CRS (EPSG:32633).
+
+o	The target time period (e.g., '2022-04-01' to '2022-08-31').
+
+o	The desired output spatial resolution (e.g., 2.0 meters).
+
+o	The specific vegetation index to calculate ('NDVI').
+
+•	Converting the projected AOI bounds to geographic coordinates (EPSG:4326), as required for searching the STAC catalog. 
+
+•	Attempting to initialize and start a Dask local cluster and client to enable parallel processing for potentially faster computation. 
+
+•	Connecting to the Microsoft Planetary Computer's STAC (SpatioTemporal Asset Catalog) API to search for satellite imagery. 
+
+•	Searching the STAC catalog for Sentinel-2 L2A satellite data based on the defined AOI, time period, and a filter for low cloud cover (< 25%). 
+
+•	Loading the required spectral bands (Red - B04, Near-Infrared - B08) from the discovered satellite scenes into an xarray data cube using stackstac. This process aligns the data to the target CRS and resolution, initially keeping the raw integer pixel values without rescaling. 
+
+•	Selecting the raw integer data for the Red and NIR bands from the data cube.
+
+•	Manually scaling the raw integer values of the Red and NIR bands by the appropriate factor (0.0001) to convert them into surface reflectance values (floating-point numbers between 0 and 1). 
+
+•	Calculating the Normalized Difference Vegetation Index (NDVI) for each pixel at each time step using the standard formula (NIR - Red) / (NIR + Red) on the scaled reflectance values. 
+
+•	Clipping the calculated NDVI values to ensure they fall within the valid theoretical range of -1 to 1. 
+
+•	Calculating the temporal median NDVI value for each pixel across all the time steps in the data cube. This creates a single representative NDVI map for the period, and. compute () triggers the actual calculation (potentially using Dask). 
+
+•	Defining the file path for the output GeoTIFF raster that will store the average NDVI map. 
+
+•	Ensuring the resulting average NDVI xarray DataArray has the correct Coordinate Reference System metadata attached using rioxarray.
+
+•	Saving the calculated average NDVI map as a GeoTIFF file using rioxarray, applying compression and defining how NoData values should be handled.
+
+•	Implementing error handling (try...except) to manage potential issues like missing libraries or runtime errors during processing. 
+
+•	Ensuring the Dask client and cluster are properly closed (finally block) after the script finishes or encounters an error, freeing up resources.
+
+## Correlation Analysis between Yield Map and Average NDVI Map
+•	Compare Raster Properties: Open the interpolated yield map and the average NDVI map, then print and compare their key geospatial metadata (CRS, Bounds, Dimensions, Resolution, Transform) to check if they align. 
+
+•	Align Rasters: If the rasters don't align (or to ensure alignment), use the yield map as a reference to resample/reproject the average NDVI map onto the exact same grid, saving the result as a new, aligned NDVI map file (avg_ndvi_map_aligned.tif). 
+
+•	Read Aligned Data: Load the pixel data from both the yield map and the newly aligned average NDVI map, using masked arrays to handle NoData values appropriately. 
+
+•	Extract Common Valid Data: Identify the pixels where both maps have valid (non-NoData) data points and extract these corresponding pairs of yield and NDVI values into flattened arrays. 
+
+•	Calculate Correlation: Compute the Pearson correlation coefficient and its p-value between the extracted pairs of valid yield and NDVI pixel values to quantify the linear relationship. 
+
+•	Analyze and Report Results: Print the calculated correlation coefficient and p-value, along with a basic interpretation of the correlation strength and its statistical significance.  
+
+•	Visualize Relationship: Create a scatter plot to visually represent the relationship between the aligned NDVI values (x-axis) and the yield values (y-axis) for the common valid pixels, including a linear regression line fit to the data.
+
+## Interpretation of Correlation Results
+
+The results show statistically significant (meaning unlikely due to chance) but very weak negative linear relationship between the average NDVI and the estimated yield rate for the pixels analyzed. The weakness of this linear relationship (r close to 0) is why the linear regression line appears horizontal on the scatter plot, indicating that NDVI is a poor linear predictor of yield rate in this specific dataset and context.
+
+
+
+
+
 
 
 
