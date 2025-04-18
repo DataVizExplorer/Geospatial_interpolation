@@ -58,7 +58,7 @@ The column UMIDITA had 37 missing values.
 
 •	Assigning the result of the griddata function (the 2D array of interpolated values) to the variable grid_z. 
 
-** Exporting Interpolated Data to Raster File**
+### Exporting Interpolated Data to Raster File
 
 •	Importing necessary libraries (rasterio and numpy). To gain tools for working with raster files (GeoTIFFs) and numerical arrays.
 
